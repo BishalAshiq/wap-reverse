@@ -4,20 +4,30 @@ import { useState } from 'react';
 const ReverseString = () => {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
 
-    const res = await fetch('/api/reverse', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ str: input }),
-    });
+    try {
+      const res = await fetch('/api/reverse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ str: input }),
+      });
 
-    const data = await res.json();
-    setResult(data);
+      if (!res.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await res.json();
+      setResult(data);
+    } catch (error) {
+      setError('Failed to fetch the data. Please try again.');
+    }
   };
 
   return (
@@ -28,16 +38,17 @@ const ReverseString = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Enter a string"
+          required
         />
         <button type="submit">Submit</button>
       </form>
 
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
       {result && (
         <div>
-          <p>Reversed String: {result.reversedStr}</p>
-          <p>
-            Is Palindrome: {result.isPalindrome ? 'Yes' : 'No'}
-          </p>
+          <p><strong>Reversed String:</strong> {result.reversedStr}</p>
+          <p><strong>Is Palindrome:</strong> {result.isPalindrome ? 'Yes' : 'No'}</p>
         </div>
       )}
     </div>
